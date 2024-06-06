@@ -61,6 +61,13 @@
     flex-wrap: wrap;
   }
 
+  .Algos{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+  }
+
   .maincanvas{
     width: 100%;
 
