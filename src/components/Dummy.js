@@ -18,8 +18,28 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import InboxIcon from '@mui/icons-material/MoveToInbox';
 import MailIcon from '@mui/icons-material/Mail';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useEffect, useRef, useState } from 'react';
+import { useCallback } from 'react';
+import ReactFlow, {
+    MiniMap,
+    Controls,
+    Background,
+    useNodesState,
+    useEdgesState,
+    addEdge,
+    Handle,
+} from 'reactflow';
+import 'reactflow/dist/style.css';
+import "../main.css"
+import DataObjectIcon from '@mui/icons-material/DataObject';
+import FileUploadIcon from '@mui/icons-material/FileUpload';
+import CloseIcon from '@mui/icons-material/Close';
+import { faCircle } from '@fortawesome/free-solid-svg-icons'; // Example icon from Font Awesome
 
-const drawerWidth = 240;
+
+
+const drawerWidth = 400;
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
   ({ theme, open }) => ({
@@ -66,9 +86,50 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'flex-end',
 }));
 
+
+const getNode=(type,name)=>{
+  let background="#eee";
+  if(type=="alg1"){
+    background="rgb(90 255 185)";
+  }
+  return (
+    <>
+      <Handle type="target" position="left" />
+        <div style={{ width: '200px', height: '200px', background: background, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {/* <FontAwesomeIcon style={{ marginRight: '5px' }} /> Example icon */}
+              <span>{name}</span>
+        </div>
+      <Handle type="source" position="right" />
+    </>
+  )
+
+
+}
+const node1 = ({ data }) => {
+  return (
+      getNode("alg1","gSpan")
+  )
+}
+
+const node2 = ({ data }) => {
+  return (
+    getNode("dataset","Dataset")
+  )
+}
+const initialNodes = [
+  { id: '1', position: { x: 100, y: 100 }, data: { label: '1' }, type: "Dataset" },
+  { id: '2', position: { x: 500, y: 500 }, data: { label: '2' }, type: "custom" },
+  { id: '3', position: { x: 900, y: 200 }, data: { label: '3' }, type: "custom" },
+];
+const initialEdges = [{ id: 'e1-2', source: '1', target: '2', animated:true , style: { strokeWidth: 5 } }];
+
+
+
+
+
 export default function PersistentDrawerLeft() {
   const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(true);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -78,10 +139,27 @@ export default function PersistentDrawerLeft() {
     setOpen(false);
   };
 
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+    const onConnect = (params) => {
+        const newEdge = {
+          ...params,
+          animated: true, // or any other properties you want to add
+          style: { strokeWidth: 5 },
+        };
+        setEdges((els) => addEdge(newEdge, els));
+    };
+    const nodetypes = {
+        "custom": node1,
+        "Dataset": node2
+    }
+
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
-      <AppBar position="fixed" open={open}>
+      <AppBar position="fixed" open={open} sx={{backgroundColor:"#2b5377"}}>
         <Toolbar>
           <IconButton
             color="inherit"
@@ -117,60 +195,50 @@ export default function PersistentDrawerLeft() {
         </DrawerHeader>
         <Divider />
         <List>
-          {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-            <ListItem key={text} disablePadding>
-              <ListItemButton>
-                <ListItemIcon>
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                </ListItemIcon>
-                <ListItemText primary={text} />
-              </ListItemButton>
-            </ListItem>
-          ))}
+        <div className='Datasets-section' style={{backgroundColor:"rgb(249 250 255)", borderRadius:"0px"}}>
+            <h2>Datasets</h2>
+            <button className='btn btn-secondary' style={{display:"flex",justifyContent:"flex-start",margin:"20px" ,width:"200px",backgroundColor:"#2b5377"}}>Add new <FileUploadIcon sx={{marginLeft:"5px"}}/></button>
+            <div className='Datasets'>
+                
+                <div className='data-tabs'>
+                    <img className='dimage' src="https://cdn-icons-png.freepik.com/512/6683/6683734.png" alt="Dummy Image 1"/>
+                    <h4>Dataset 1</h4>
+                </div>
+                <div className='data-tabs'>
+                    <img className='dimage' src="https://cdn-icons-png.freepik.com/512/138/138928.png" alt="Dummy Image 2"/>
+                    <h4>Dataset 2</h4>
+                </div>
+            </div>
+        </div>
+        {/* <hr/> */}
+        <div className='Algorithm-section' style={{backgroundColor:"rgb(249 250 255)", borderRadius:"10px", padding:"20px"}}>
+            <h2>Algorithms</h2>
+            <div className='data-tabs'>
+                <DataObjectIcon style={{ fontSize: "100px", color: "green" }} />
+                <h4>Algorithm 1</h4>
+            </div>
+        </div>
         </List>
         <Divider />
         <List>
-          {['All mail', 'Trash', 'Spam'].map((text, index) => (
-            <ListItem key={text} disablePadding>
-              <ListItemButton>
-                <ListItemIcon>
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                </ListItemIcon>
-                <ListItemText primary={text} />
-              </ListItemButton>
-            </ListItem>
-          ))}
+         
         </List>
       </Drawer>
       <Main open={open}>
         <DrawerHeader />
-        <Typography paragraph>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-          tempor incididunt ut labore et dolore magna aliqua. Rhoncus dolor purus non
-          enim praesent elementum facilisis leo vel. Risus at ultrices mi tempus
-          imperdiet. Semper risus in hendrerit gravida rutrum quisque non tellus.
-          Convallis convallis tellus id interdum velit laoreet id donec ultrices.
-          Odio morbi quis commodo odio aenean sed adipiscing. Amet nisl suscipit
-          adipiscing bibendum est ultricies integer quis. Cursus euismod quis viverra
-          nibh cras. Metus vulputate eu scelerisque felis imperdiet proin fermentum
-          leo. Mauris commodo quis imperdiet massa tincidunt. Cras tincidunt lobortis
-          feugiat vivamus at augue. At augue eget arcu dictum varius duis at
-          consectetur lorem. Velit sed ullamcorper morbi tincidunt. Lorem donec massa
-          sapien faucibus et molestie ac.
-        </Typography>
-        <Typography paragraph>
-          Consequat mauris nunc congue nisi vitae suscipit. Fringilla est ullamcorper
-          eget nulla facilisi etiam dignissim diam. Pulvinar elementum integer enim
-          neque volutpat ac tincidunt. Ornare suspendisse sed nisi lacus sed viverra
-          tellus. Purus sit amet volutpat consequat mauris. Elementum eu facilisis
-          sed odio morbi. Euismod lacinia at quis risus sed vulputate odio. Morbi
-          tincidunt ornare massa eget egestas purus viverra accumsan in. In hendrerit
-          gravida rutrum quisque non tellus orci ac. Pellentesque nec nam aliquam sem
-          et tortor. Habitant morbi tristique senectus et. Adipiscing elit duis
-          tristique sollicitudin nibh sit. Ornare aenean euismod elementum nisi quis
-          eleifend. Commodo viverra maecenas accumsan lacus vel facilisis. Nulla
-          posuere sollicitudin aliquam ultrices sagittis orci a.
-        </Typography>
+        <div className='maincanvas' style={{width:"100%",height:"90vh"}}>
+            <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                nodeTypes={nodetypes}
+            >
+            <Background variant="lines" size={2} gap={26} />
+            <Controls />
+            </ReactFlow>
+        </div>
       </Main>
     </Box>
   );
