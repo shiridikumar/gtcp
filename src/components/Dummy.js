@@ -21,6 +21,7 @@ import MailIcon from '@mui/icons-material/Mail';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useRef, useState } from 'react';
 import { useCallback } from 'react';
+import DataObjectIcon from '@mui/icons-material/DataObject';
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -32,7 +33,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import "../main.css"
-import DataObjectIcon from '@mui/icons-material/DataObject';
+// import DataObjectIcon from '@mui/icons-material/DataObject';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import CloseIcon from '@mui/icons-material/Close';
 import { faCircle } from '@fortawesome/free-solid-svg-icons'; // Example icon from Font Awesome
@@ -133,9 +134,25 @@ const node1 = ({ data }) => {
 
 const node2 = ({ data }) => {
   return (
-    getNode("dataset", "Dataset")
+    getNode("dataset", "Yeast")
   )
 }
+
+
+
+const node3 = ({ data }) => {
+  return (
+    getNode("alg2", "Dataset")
+  )
+}
+
+const nodetypes = {
+  "subgraph_algo": node1,
+  "Dataset": node2,
+  "pattern_algo": node3
+}
+
+
 const initialNodes = [
   { id: '1', position: { x: 100, y: 100 }, data: { label: '1' }, type: "Dataset" },
   { id: '2', position: { x: 500, y: 500 }, data: { label: '2' }, type: "subgraph_algo" },
@@ -148,8 +165,11 @@ export default function PersistentDrawerLeft() {
   const [datasets, setDatasets] = React.useState([]);
   const [subgraph_algos, setSubgraphAlgos] = React.useState([]);
   const [pattern_algos, setPatternAlgos] = React.useState([]);
-
   const [dummy, setdummy] = React.useState(true);
+  const [minGTC, setminGTC] = React.useState(0.5);
+  const [minsup, setminsup] = React.useState(0.5);
+  const [minGTPC, setminGTPC] = React.useState(0.5);
+  const [maxOR, setmaxOR] = React.useState(0.5);
 
   const [datatab, setdatatab] = React.useState();
   const [algotab, setalgotab] = React.useState();
@@ -160,60 +180,28 @@ export default function PersistentDrawerLeft() {
 
   const [reactflow, setreactflow] = useState();
 
-  const [nodetypes, setnodetypes] = useState({
-    "subgraph_algo": node1,
-    "Dataset": node2
-  })
 
-  React.useEffect(() => {
-    console.log(nodetypes,"changed");
-
-    setreactflow(
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodetypes}
-      >
-        <Background variant="lines" size={2} gap={26} />
-        <Controls />
-      </ReactFlow>
-    )
-
-
-  }, [nodetypes])
-
-  // const updateValue = (key, newValue) => {
-  //   setnodetypes(prevData => ({
-  //     ...prevData,
-  //     [key]: newValue,
-  //   }));
-  // };
+  const changeNodeType = (nodeId, newType) => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === nodeId ? { ...node, type: newType } : node
+      )
+    );
+  };
   const datasetclick = (name) => {
     setCurrDataset(name);
     let flag = true;
     for (var i = 0; i < initialNodes.length; i++) {
       if (initialNodes[i]["type"] == "Dataset") {
-        const newnode = getNode("Dataset", "nothing");
-        console.log("Clicked this akanksha ", newnode)
-        // let newtypes = nodetypes;
-        // setnodetypes({...nodetypes,"Dataset": <><Handle type="target" position="left" /> <Handle type="source" position="right" /></>})
-        // newtypes["Dataset"] = ";
-        // updateValue("Dataset",newnode);
-        // console.log(newtypes,"****************");
-        // setnodetypes([]);
-        // setdummy(!(dummy));
-
-        // setnodetypes();
+        changeNodeType('1', 'subgraph_algo');
+        // const newnode = getNode("Dataset", "nothing");
       }
     }
   }
 
 
 
-  
+
 
 
   const [open, setOpen] = React.useState(true);
@@ -244,34 +232,28 @@ export default function PersistentDrawerLeft() {
     }
 
     fetchData();
-    setreactflow(
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodetypes}
-      >
-        <Background variant="lines" size={2} gap={26} />
-        <Controls />
-      </ReactFlow>
-    )
   }, [])
 
   React.useEffect(() => {
     const row = [];
     if (datasets) {
       for (var i = 0; i < datasets.length; i++) {
-        row.push(<div onClick={() => { datasetclick(datasets[i]) }} style={{ cursor: "pointer" }}>
-          {getNode2("dataset", datasets[i])}
-        </div>
+        row.push(
+          <a onClick={() => { datasetclick(datasets[i]) }} class="list-group-item list-group-item-action" style={{ textAlign:"left",cursor: "pointer" }}>{datasets[i]}  <DataObjectIcon style={{ color: "#2b5377" }} /></a>
+        )
+        row.push(
+          <a onClick={() => { datasetclick(datasets[i]) }} class="list-group-item list-group-item-action" style={{textAlign:"left", cursor: "pointer" }}>{datasets[i]}  <DataObjectIcon style={{ color: "#2b5377" }} /></a>
+        )
+        row.push(
+          <a onClick={() => { datasetclick(datasets[i]) }} class="list-group-item list-group-item-action" style={{ textAlign:"left",cursor: "pointer" }}>{datasets[i]}  <DataObjectIcon style={{ color: "#2b5377" }} /></a>
         )
       }
     }
     const fin =
       (<div className='Datasets'>
-        {row}
+        <div class="list-group" style={{ width: "100%" }}>
+          {row}
+        </div>
       </div>)
     setdatatab(fin);
 
@@ -283,14 +265,16 @@ export default function PersistentDrawerLeft() {
     if (subgraph_algos) {
       for (var i = 0; i < subgraph_algos.length; i++) {
         row.push(<div onClick={() => { setCurrsubgraphAlgo(subgraph_algos[i]) }} style={{ cursor: "pointer" }}>
-          {getNode2("alg1", subgraph_algos[i])}
+          <a onClick={() => { setCurrsubgraphAlgo(subgraph_algos[i]) }} class="list-group-item list-group-item-action" style={{ textAlign:"left",cursor: "pointer" }}>{subgraph_algos[i]}  <DataObjectIcon style={{ color: "#2b5377" }} /></a>
         </div>
         )
       }
     }
     const fin =
       (<div className='Algos'>
-        {row}
+        <div class="list-group" style={{ width: "100%" }}>
+          {row}
+        </div>
       </div>)
     setalgotab(fin);
 
@@ -325,7 +309,7 @@ export default function PersistentDrawerLeft() {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
-            Persistent drawer
+            Graph transactional coverage patterns
           </Typography>
         </Toolbar>
       </AppBar>
@@ -350,27 +334,57 @@ export default function PersistentDrawerLeft() {
         <Divider />
         <List>
           <div className='Datasets-section' style={{ backgroundColor: "rgb(249 250 255)", borderRadius: "0px", padding: "10px" }}>
-            <h2>Datasets</h2>
-            <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "flex-start", margin: "20px", width: "200px", backgroundColor: "#2b5377" }}>Add new <FileUploadIcon sx={{ marginLeft: "5px" }} /></button>
+            <h4 style={{textAlign:"left", color:"gray"}}>Datasets</h4>
+            <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "flex-start", marginBottom: "20px", width: "200px", backgroundColor: "#2b5377" }}>Add new <FileUploadIcon sx={{ marginLeft: "5px" }} /></button>
             {datatab}
 
           </div>
           {/* <hr/> */}
-          <div className='Algorithm-section' style={{ backgroundColor: "rgb(249 250 255)", borderRadius: "10px", padding: "10px" }}>
-            <h2>Algorithms</h2>
+          <div className='Algorithm-section' style={{ backgroundColor: "rgb(249 250 255)", borderRadius: "10px", padding: "10px" ,marginTop:"50px" }}>
+            <h4 style={{textAlign:"left" ,color:"gray"}}>Subgraph mining algorithms</h4>
             {algotab}
           </div>
+
         </List>
         <Divider />
         <List>
 
         </List>
       </Drawer>
-      <Main open={open}>
+      <Main open={open} sx={{ padding: "0px" }}>
         <DrawerHeader />
-        <div className='maincanvas' style={{ width: "100%", height: "90vh" }}>
-            {reactflow}
+        <div className="main" style={{ display: "flex", flexDirection: "row", padding: "0px" }}>
+          <div className='maincanvas' style={{ width: "100%", height: "85vh" }}>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              nodeTypes={nodetypes}
+            >
+              <Background variant="lines" size={6} gap={26} />
+              <Controls />
+            </ReactFlow>
+          </div>
+          <div style={{ width: "30%", padding: "20px", display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "rgb(249, 250, 255)", height: "100%" }}>
+            <div className="thresholds">
+              <label for="customRange1" className="form-label">min Sup : {minsup}</label>
+              <input type="range" className="form-range" id="customRange1" onChange={(e) => { setminsup(e.target.value / 100) }} />
+
+              <label for="customRange1" className="form-label">min GTC : {minGTC}</label>
+              <input type="range" className="form-range" id="customRange1" onChange={(e) => { setminGTC(e.target.value / 100) }} />
+
+              <label for="customRange1" className="form-label">min GTPC : {minGTPC}</label>
+              <input type="range" className="form-range" id="customRange1" onChange={(e) => { setminGTPC(e.target.value / 100) }} />
+
+              <label for="customRange1" className="form-label">max OR : {maxOR}</label>
+              <input type="range" className="form-range" id="customRange1" onChange={(e) => { setmaxOR(e.target.value / 100) }} />
+            </div>
+            <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }}>Mine patterns</button>
+          </div>
         </div>
+
       </Main>
     </Box>
   );
