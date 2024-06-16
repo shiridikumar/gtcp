@@ -9,10 +9,11 @@ import {
 } from "react-router-dom";
 import HomeScreen from './components/HomeScreen';
 import PersistentDrawerLeft from './components/Dummy';
+import ViewSubgraphs from './components/ViewSubgraphs';
 
 // import PersistentDrawerLeft from './components/Dummy';
 // import PersistentDrawerLeft from './components/D';
-
+{/* <ViewSubgraphs */}
 function App() {
 
   return (
@@ -21,6 +22,8 @@ function App() {
         <Routes>
           <Route exact path="/new" element={<PersistentDrawerLeft/>}/>
           <Route exact path="/" element={<HomeScreen />} />
+          <Route exact path="/viewSubgraphs" element={<ViewSubgraphs />} />
+
           {/* <Route exact path="/signup" element={<SignUp />} /> */}
 
         </Routes>

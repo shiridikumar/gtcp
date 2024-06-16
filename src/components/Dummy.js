@@ -38,6 +38,7 @@ import FileUploadIcon from '@mui/icons-material/FileUpload';
 import CloseIcon from '@mui/icons-material/Close';
 import { faCircle } from '@fortawesome/free-solid-svg-icons'; // Example icon from Font Awesome
 import axios, { Axios } from "axios";
+import { useNavigate } from 'react-router-dom';
 
 
 const drawerWidth = 400;
@@ -158,7 +159,7 @@ const initialNodes = [
   { id: '2', position: { x: 500, y: 500 }, data: { label: '2' }, type: "subgraph_algo" },
   { id: '3', position: { x: 900, y: 200 }, data: { label: '3' }, type: "subgraph_algo" },
 ];
-const initialEdges = [{ id: 'e1-2', source: '1', target: '2', animated: true, style: { strokeWidth: 5 } }];
+const initialEdges = [];
 
 export default function PersistentDrawerLeft() {
   const theme = useTheme();
@@ -179,6 +180,7 @@ export default function PersistentDrawerLeft() {
   const [currPatternAlgo, setPatternAlgo] = useState("");
 
   const [reactflow, setreactflow] = useState();
+  const navigate=useNavigate();
 
 
   const changeNodeType = (nodeId, newType) => {
@@ -194,7 +196,6 @@ export default function PersistentDrawerLeft() {
     for (var i = 0; i < initialNodes.length; i++) {
       if (initialNodes[i]["type"] == "Dataset") {
         changeNodeType('1', 'subgraph_algo');
-        // const newnode = getNode("Dataset", "nothing");
       }
     }
   }
@@ -215,6 +216,7 @@ export default function PersistentDrawerLeft() {
   };
   React.useEffect(() => {
     const fetchData = async () => {
+      console.log("hello fetch data")
       await axios.get(`http://localhost:5000/get_datasets_algos`, {
         headers: {
 
@@ -239,13 +241,13 @@ export default function PersistentDrawerLeft() {
     if (datasets) {
       for (var i = 0; i < datasets.length; i++) {
         row.push(
-          <a onClick={() => { datasetclick(datasets[i]) }} class="list-group-item list-group-item-action" style={{ textAlign:"left",cursor: "pointer" }}>{datasets[i]}  <DataObjectIcon style={{ color: "#2b5377" }} /></a>
+          <a onClick={() => { datasetclick(datasets[i]) }} class="list-group-item list-group-item-action" style={{ textAlign: "left", cursor: "pointer" }}>{datasets[i]}  <DataObjectIcon style={{ color: "#2b5377" }} /></a>
         )
         row.push(
-          <a onClick={() => { datasetclick(datasets[i]) }} class="list-group-item list-group-item-action" style={{textAlign:"left", cursor: "pointer" }}>{datasets[i]}  <DataObjectIcon style={{ color: "#2b5377" }} /></a>
+          <a onClick={() => { datasetclick(datasets[i]) }} class="list-group-item list-group-item-action" style={{ textAlign: "left", cursor: "pointer" }}>{datasets[i]}  <DataObjectIcon style={{ color: "#2b5377" }} /></a>
         )
         row.push(
-          <a onClick={() => { datasetclick(datasets[i]) }} class="list-group-item list-group-item-action" style={{ textAlign:"left",cursor: "pointer" }}>{datasets[i]}  <DataObjectIcon style={{ color: "#2b5377" }} /></a>
+          <a onClick={() => { datasetclick(datasets[i]) }} class="list-group-item list-group-item-action" style={{ textAlign: "left", cursor: "pointer" }}>{datasets[i]}  <DataObjectIcon style={{ color: "#2b5377" }} /></a>
         )
       }
     }
@@ -265,7 +267,7 @@ export default function PersistentDrawerLeft() {
     if (subgraph_algos) {
       for (var i = 0; i < subgraph_algos.length; i++) {
         row.push(<div onClick={() => { setCurrsubgraphAlgo(subgraph_algos[i]) }} style={{ cursor: "pointer" }}>
-          <a onClick={() => { setCurrsubgraphAlgo(subgraph_algos[i]) }} class="list-group-item list-group-item-action" style={{ textAlign:"left",cursor: "pointer" }}>{subgraph_algos[i]}  <DataObjectIcon style={{ color: "#2b5377" }} /></a>
+          <a onClick={() => { setCurrsubgraphAlgo(subgraph_algos[i]) }} class="list-group-item list-group-item-action" style={{ textAlign: "left", cursor: "pointer" }}>{subgraph_algos[i]}  <DataObjectIcon style={{ color: "#2b5377" }} /></a>
         </div>
         )
       }
@@ -283,6 +285,10 @@ export default function PersistentDrawerLeft() {
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [connection1, setcon1] = useState(false);
+  const [connection2, setcon2] = useState(false);
+  const [cont, setcont] = useState();
+
 
   const onConnect = (params) => {
     const newEdge = {
@@ -291,8 +297,44 @@ export default function PersistentDrawerLeft() {
       style: { strokeWidth: 5 },
     };
     setEdges((els) => addEdge(newEdge, els));
+    console.log(newEdge, "???????????????????????");
+    if (newEdge["source"] == 1 && newEdge["target"] == 2) {
+      setcon1(true);
+    }
+    if (newEdge["source"] == 2 && newEdge["target"] == 3) {
+      setcon2(true);
+    }
   };
 
+  const mineSubgraphs = async () => {
+    await axios.post(`http://localhost:5000/mineSubgraphs`, { dataset: "Yeast", subgraph_algo: "gSpan", minsup: minsup }, {
+      headers: {
+
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+        'Content-Type': "application/json",
+      }
+
+    }).then(response => {
+      const row = []
+      for (var i = 0; i < response.data["file_content"].length; i++) {
+        row.push(<li>{response.data["file_content"][i]}</li>)
+      }
+      const queryString = new URLSearchParams({"url":response.data["subgraphs"]}).toString();
+      setcont(
+        <div className="thresholds" style={{marginTop:"30px"}}>
+          <h4>Statistics</h4>
+          <ol style={{display:"flex",flexDirection:"column",justifyContent:"left",alignItems:"flex-start"}}>
+          {row}
+          </ol>
+          <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} onClick={()=>window.open(`/viewSubgraphs?${queryString}`, '_blank')}>View Subgraphs</button>
+        </div>
+      )
+
+      // console.log(response.data,"`http://localhost:5000/*****************");
+    })
+
+  }
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -334,14 +376,14 @@ export default function PersistentDrawerLeft() {
         <Divider />
         <List>
           <div className='Datasets-section' style={{ backgroundColor: "rgb(249 250 255)", borderRadius: "0px", padding: "10px" }}>
-            <h4 style={{textAlign:"left", color:"gray"}}>Datasets</h4>
+            <h4 style={{ textAlign: "left", color: "gray" }}>Datasets</h4>
             <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "flex-start", marginBottom: "20px", width: "200px", backgroundColor: "#2b5377" }}>Add new <FileUploadIcon sx={{ marginLeft: "5px" }} /></button>
             {datatab}
 
           </div>
           {/* <hr/> */}
-          <div className='Algorithm-section' style={{ backgroundColor: "rgb(249 250 255)", borderRadius: "10px", padding: "10px" ,marginTop:"50px" }}>
-            <h4 style={{textAlign:"left" ,color:"gray"}}>Subgraph mining algorithms</h4>
+          <div className='Algorithm-section' style={{ backgroundColor: "rgb(249 250 255)", borderRadius: "10px", padding: "10px", marginTop: "50px" }}>
+            <h4 style={{ textAlign: "left", color: "gray" }}>Subgraph mining algorithms</h4>
             {algotab}
           </div>
 
@@ -367,21 +409,35 @@ export default function PersistentDrawerLeft() {
               <Controls />
             </ReactFlow>
           </div>
-          <div style={{ width: "30%", padding: "20px", display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "rgb(249, 250, 255)", height: "100%" }}>
-            <div className="thresholds">
-              <label for="customRange1" className="form-label">min Sup : {minsup}</label>
-              <input type="range" className="form-range" id="customRange1" onChange={(e) => { setminsup(e.target.value / 100) }} />
+          <div style={{ minWidth: "30%", padding: "20px", display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "rgb(249, 250, 255)", height: "100%" }}>
+            {/* <div className='thresholds'> */}
+            {connection1 &&
+              <div className="thresholds">
+                <h3>Subgraph mining</h3>
+                <label for="customRange1" className="form-label">min Sup : {minsup}</label>
+                <input type="range" className="form-range" id="customRange1" onChange={(e) => { setminsup(e.target.value / 100) }} />
+                <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} onClick={() => { mineSubgraphs() }}>Mine Sub Graphs</button>
+              </div>
+            }
+            {cont}
+            {connection2 &&
+              <div style={{ marginTop: "100px" }}>
+                <div className="thresholds">
+                  <h4> Graph transactional converage pattern</h4>
+                  <br />
+                  <label for="customRange1" className="form-label">min GTC : {minGTC}</label>
+                  <input type="range" className="form-range" id="customRange1" onChange={(e) => { setminGTC(e.target.value / 100) }} />
 
-              <label for="customRange1" className="form-label">min GTC : {minGTC}</label>
-              <input type="range" className="form-range" id="customRange1" onChange={(e) => { setminGTC(e.target.value / 100) }} />
+                  <label for="customRange1" className="form-label">min GTPC : {minGTPC}</label>
+                  <input type="range" className="form-range" id="customRange1" onChange={(e) => { setminGTPC(e.target.value / 100) }} />
 
-              <label for="customRange1" className="form-label">min GTPC : {minGTPC}</label>
-              <input type="range" className="form-range" id="customRange1" onChange={(e) => { setminGTPC(e.target.value / 100) }} />
+                  <label for="customRange1" className="form-label">max OR : {maxOR}</label>
+                  <input type="range" className="form-range" id="customRange1" onChange={(e) => { setmaxOR(e.target.value / 100) }} />
+                  <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }}>Mine patterns</button>
 
-              <label for="customRange1" className="form-label">max OR : {maxOR}</label>
-              <input type="range" className="form-range" id="customRange1" onChange={(e) => { setmaxOR(e.target.value / 100) }} />
-            </div>
-            <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }}>Mine patterns</button>
+                </div>
+              </div>
+            }
           </div>
         </div>
 
