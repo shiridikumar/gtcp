@@ -8,8 +8,7 @@ const ViewSubgraphs=()=>{
     const queryParams = new URLSearchParams(location.search);
     const url=queryParams.get("url");
     return (
-        <img src={`http://localhost:5000/${url}`}/>
-    )
+        JSON.stringify({1:2})    )
 
 }
 export default ViewSubgraphs

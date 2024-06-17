@@ -22,6 +22,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useRef, useState } from 'react';
 import { useCallback } from 'react';
 import DataObjectIcon from '@mui/icons-material/DataObject';
+import CircularProgress from '@mui/material/CircularProgress';
+
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -39,6 +41,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { faCircle } from '@fortawesome/free-solid-svg-icons'; // Example icon from Font Awesome
 import axios, { Axios } from "axios";
 import { useNavigate } from 'react-router-dom';
+import { width } from '@mui/system';
 
 
 const drawerWidth = 400;
@@ -92,6 +95,9 @@ const getNode = (type, name) => {
   if (type == "alg1") {
     background = "rgb(90 255 185)";
   }
+  else if (type == "alg2") {
+    background = "rgb(121 176 233)";
+  }
   let first = name.charAt(0).toUpperCase();
   return (
     <>
@@ -143,7 +149,7 @@ const node2 = ({ data }) => {
 
 const node3 = ({ data }) => {
   return (
-    getNode("alg2", "Dataset")
+    getNode("alg2", "GTCP")
   )
 }
 
@@ -157,7 +163,7 @@ const nodetypes = {
 const initialNodes = [
   { id: '1', position: { x: 100, y: 100 }, data: { label: '1' }, type: "Dataset" },
   { id: '2', position: { x: 500, y: 500 }, data: { label: '2' }, type: "subgraph_algo" },
-  { id: '3', position: { x: 900, y: 200 }, data: { label: '3' }, type: "subgraph_algo" },
+  { id: '3', position: { x: 900, y: 200 }, data: { label: '3' }, type: "pattern_algo" },
 ];
 const initialEdges = [];
 
@@ -175,12 +181,15 @@ export default function PersistentDrawerLeft() {
   const [datatab, setdatatab] = React.useState();
   const [algotab, setalgotab] = React.useState();
 
+
   const [currDataset, setCurrDataset] = useState("");
   const [currsubgraphAlgo, setCurrsubgraphAlgo] = useState("");
   const [currPatternAlgo, setPatternAlgo] = useState("");
+  const [loading, setLoading] = useState(false);
+
 
   const [reactflow, setreactflow] = useState();
-  const navigate=useNavigate();
+  const navigate = useNavigate();
 
 
   const changeNodeType = (nodeId, newType) => {
@@ -288,6 +297,7 @@ export default function PersistentDrawerLeft() {
   const [connection1, setcon1] = useState(false);
   const [connection2, setcon2] = useState(false);
   const [cont, setcont] = useState();
+  const [result, setResults] = useState();
 
 
   const onConnect = (params) => {
@@ -307,6 +317,7 @@ export default function PersistentDrawerLeft() {
   };
 
   const mineSubgraphs = async () => {
+    setLoading(true);
     await axios.post(`http://localhost:5000/mineSubgraphs`, { dataset: "Yeast", subgraph_algo: "gSpan", minsup: minsup }, {
       headers: {
 
@@ -320,18 +331,61 @@ export default function PersistentDrawerLeft() {
       for (var i = 0; i < response.data["file_content"].length; i++) {
         row.push(<li>{response.data["file_content"][i]}</li>)
       }
-      const queryString = new URLSearchParams({"url":response.data["subgraphs"]}).toString();
+      const queryString = new URLSearchParams({ "url": response.data["subgraphs"] }).toString();
       setcont(
-        <div className="thresholds" style={{marginTop:"30px"}}>
+        <div className="thresholds" style={{ marginTop: "30px" }}>
           <h4>Statistics</h4>
-          <ol style={{display:"flex",flexDirection:"column",justifyContent:"left",alignItems:"flex-start"}}>
-          {row}
+          <ol style={{ display: "flex", flexDirection: "column", justifyContent: "left", alignItems: "flex-start" }}>
+            {row}
           </ol>
-          <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} onClick={()=>window.open(`/viewSubgraphs?${queryString}`, '_blank')}>View Subgraphs</button>
+          <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} onClick={() => window.open(`/viewSubgraphs?${queryString}`, '_blank')}>View Subgraphs</button>
+        </div>
+
+      )
+      setLoading(false);
+
+      // console.log(response.data,"`http://localhost:5000/*****************");
+    })
+
+  }
+
+  const handleDownload = (obj) => {
+    const fileName = "data.json";
+    const jsonStr = JSON.stringify(obj, null, 2);
+
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const href = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = href;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    URL.revokeObjectURL(href);
+  };
+
+  const minePattern = async () => {
+    await axios.post(`http://localhost:5000/mineGTCP`, { dataset: "Yeast", subgraph_algo: "gSpan", minsup: minsup }, {
+      headers: {
+
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+        'Content-Type': "application/json",
+      }
+
+    }).then(response => {
+      setResults(
+        <div>
+          <form action="http://localhost:5000/getPatterns" target="_blank" method="post">
+            <input type="hidden" id="arrayInput" name="arrayData" value={JSON.stringify(response.data)} />
+            <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} type='submit'>View Results</button>
+          </form>
+          <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} onClick={() => { handleDownload(response.data) }}>Download Results</button>
         </div>
       )
 
-      // console.log(response.data,"`http://localhost:5000/*****************");
     })
 
   }
@@ -409,19 +463,9 @@ export default function PersistentDrawerLeft() {
               <Controls />
             </ReactFlow>
           </div>
-          <div style={{ minWidth: "30%", padding: "20px", display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "rgb(249, 250, 255)", height: "100%" }}>
-            {/* <div className='thresholds'> */}
-            {connection1 &&
-              <div className="thresholds">
-                <h3>Subgraph mining</h3>
-                <label for="customRange1" className="form-label">min Sup : {minsup}</label>
-                <input type="range" className="form-range" id="customRange1" onChange={(e) => { setminsup(e.target.value / 100) }} />
-                <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} onClick={() => { mineSubgraphs() }}>Mine Sub Graphs</button>
-              </div>
-            }
-            {cont}
+          <div style={{ minWidth: "25%", maxWidth: "30%", padding: "20px", display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "rgb(249, 250, 255)", height: "100%" }}>
             {connection2 &&
-              <div style={{ marginTop: "100px" }}>
+              <div style={{ marginBottom: "30px", width: "70%" }}>
                 <div className="thresholds">
                   <h4> Graph transactional converage pattern</h4>
                   <br />
@@ -433,11 +477,22 @@ export default function PersistentDrawerLeft() {
 
                   <label for="customRange1" className="form-label">max OR : {maxOR}</label>
                   <input type="range" className="form-range" id="customRange1" onChange={(e) => { setmaxOR(e.target.value / 100) }} />
-                  <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }}>Mine patterns</button>
-
+                  <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} onClick={() => minePattern()}>Mine patterns</button>
+                  {result}
                 </div>
               </div>
             }
+            {connection1 &&
+              <div className="thresholds">
+                <h3>Subgraph mining</h3>
+                <label for="customRange1" className="form-label">min Sup : {minsup}</label>
+                <input type="range" className="form-range" id="customRange1" onChange={(e) => { setminsup(e.target.value / 100) }} />
+                <Box display="flex" justifyContent="center" alignItems="center" height="5vh" marginTop="20px">
+                  {loading? <CircularProgress  />: <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} onClick={() => { mineSubgraphs() }}>Mine Sub Graphs</button>}
+                </Box>
+              </div>
+            }
+            {cont}
           </div>
         </div>
 
