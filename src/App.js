@@ -10,18 +10,19 @@ import {
 import HomeScreen from './components/HomeScreen';
 import PersistentDrawerLeft from './components/Dummy';
 import ViewSubgraphs from './components/ViewSubgraphs';
+import LandingPage from './components/LandingPage';
 
 // import PersistentDrawerLeft from './components/Dummy';
 // import PersistentDrawerLeft from './components/D';
 {/* <ViewSubgraphs */}
 function App() {
-
+{/* <LandingPage */}
   return (
     <div className="App">
        <BrowserRouter>
         <Routes>
           <Route exact path="/new" element={<PersistentDrawerLeft/>}/>
-          <Route exact path="/" element={<HomeScreen />} />
+          <Route exact path="/" element={<LandingPage />} />
           <Route exact path="/viewSubgraphs" element={<ViewSubgraphs />} />
 
           {/* <Route exact path="/signup" element={<SignUp />} /> */}
