@@ -21,9 +21,9 @@ const CarouselComponent = ({ images }) => {
             <div className="carousel-inner" style={{height:"100%", paddingTop:"40px"}}>
                 {images.map((item, index) => (
                     <div key={index} className={`carousel-item ${index === 0 ? 'active' : ''}`}>
-                        <img src={`data:image/png;base64,${item[0]}`} className="d-block w-100" alt={`Slide ${index + 1}`} style={{ maxHeight: '500px', objectFit: 'contain' }} />
+                        <img src={`data:image/png;base64,${item[0]}`} className="d-block w-100" alt={`Slide ${index + 1}`} style={{ maxHeight: '65vh', objectFit: 'contain' }} />
                         <div className="carousel-caption d-none d-md-block">
-                            <h5>Pattern Coverage: {item[1]}</h5>
+                            <h5 style={{color:"black"}}>Pattern Coverage: {item[1]}</h5>
                         </div>
                     </div>
                 ))}

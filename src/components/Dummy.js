@@ -316,15 +316,15 @@ export default function PersistentDrawerLeft() {
     // handleDrawerClose();
     return (
       <>
-        <button className="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop">Toggle top offcanvas</button>
+        <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop">View Top 10 Patterns</button>
 
-        <div className="offcanvas offcanvas-top" tabindex="-1" id="offcanvasTop" aria-labelledby="offcanvasTopLabel" style={{width:"100vw",height:"90vh"}}>
+        <div className="offcanvas offcanvas-top" tabindex="-1" id="offcanvasTop" aria-labelledby="offcanvasTopLabel" style={{ width: "100vw", height: "90vh" }}>
           <div className="offcanvas-header">
             <h5 id="offcanvasTopLabel">Offcanvas top</h5>
             <button type="button" className="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
           </div>
           <div className="offcanvas-body">
-            <CarouselComponent images={top10}/>
+            <CarouselComponent images={top10} />
             {/* <img src={`data:image/png;base64,${top10[0][0]}`} alt="Plot" /> */}
           </div>
         </div>
