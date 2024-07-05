@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Navbar.css';
 import logo from './logo.avif';
-
+import { useNavigate } from 'react-router-dom';
 const Navbar = () => {
+    const navigate=useNavigate();
     const [activeLink, setActiveLink] = useState('');
 
     const handleSetActiveLink = (link) => {
@@ -38,8 +39,7 @@ const Navbar = () => {
                     <li className="nav-item">
                         <a 
                             className={`nav-link ${activeLink === 'view-tool' ? 'active' : ''}`} 
-                            href="#view-tool" 
-                            onClick={() => handleSetActiveLink('view-tool')}
+                            onClick={() => navigate("new")}
                         >
                             View Tool
                         </a>

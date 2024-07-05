@@ -5,9 +5,11 @@ import { Link, Element, animateScroll as scroll } from 'react-scroll';
 import './LandingPage.css';
 import logo from './logo.avif';
 import Navbar from './Navbar';
+import { useNavigate } from 'react-router-dom';
 // import React, { useState } from 'react';
-
+// useNavigate
 const LandingPage = () => {
+    const navigate=useNavigate();
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -51,7 +53,7 @@ const LandingPage = () => {
                 <div>
                     <h1 className="title">Coverage Patterns extraction tool</h1>
                     <p className="subtitle">~ In application to Drug discovery</p>
-                    <button className="tool-button" onClick={() => scroll.scrollToBottom()}>Explore Our Tool</button>
+                    <button className="tool-button" onClick={() =>navigate("new")}>Explore Our Tool</button>
                 </div>
                 {/* <img src={logo} alt="Project Logo" className="logo" style={{ marginLeft:"50px",height: "300px", width: "350px" }} /> */}
 

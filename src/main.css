@@ -98,5 +98,38 @@ a {
   text-align: left;
 }
 
+.dataset-list button{
+  height:50px;
+  background-color:white;
+  border: none;
+  width: 100%;
+}
 
 
+
+.top-grid-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f0f0f0;
+  padding-bottom: 40px;
+  padding-top: 40px;
+  padding-right: 80px;
+  padding-left: 80px;
+  border-bottom: 1px solid #ccc;
+}
+
+.top-grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.top-grid-label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.top-grid-value {
+  font-style: italic;
+}

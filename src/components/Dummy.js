@@ -36,12 +36,14 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import "../main.css"
 // import DataObjectIcon from '@mui/icons-material/DataObject';
-import FileUploadIcon from '@mui/icons-material/FileUpload';
 import CloseIcon from '@mui/icons-material/Close';
 import { faCircle } from '@fortawesome/free-solid-svg-icons'; // Example icon from Font Awesome
 import axios, { Axios } from "axios";
 import { useNavigate } from 'react-router-dom';
 import { width } from '@mui/system';
+import AccordionUsage from './DropDown';
+import FileUpload from './FileUpload';
+import TopGrid from './TopGrid';
 
 
 const drawerWidth = 400;
@@ -127,7 +129,7 @@ const getNode2 = (type, name) => {
       <div style={{ width: '170px', height: '150px', background: background, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <span style={{ fontSize: "70px", fontFamily: "cursive" }}>{first}</span>
       </div>
-      <p>{cont}</p>
+      <p>Dataset</p>
     </div>
   )
 }
@@ -135,21 +137,19 @@ const getNode2 = (type, name) => {
 
 const node1 = ({ data }) => {
   return (
-    getNode("alg1", "gSpan")
+    getNode("alg1", "Subgraph Mining")
   )
 }
 
 const node2 = ({ data }) => {
   return (
-    getNode("dataset", "Yeast")
+    getNode("dataset", "Dataset")
   )
 }
 
-
-
 const node3 = ({ data }) => {
   return (
-    getNode("alg2", "GTCP")
+    getNode("alg2", "Coverage Pattern mining")
   )
 }
 
@@ -170,6 +170,7 @@ const initialEdges = [];
 export default function PersistentDrawerLeft() {
   const theme = useTheme();
   const [datasets, setDatasets] = React.useState([]);
+  const [props, setProps] = React.useState({ "datasets": [] });
   const [subgraph_algos, setSubgraphAlgos] = React.useState([]);
   const [pattern_algos, setPatternAlgos] = React.useState([]);
   const [dummy, setdummy] = React.useState(true);
@@ -182,9 +183,10 @@ export default function PersistentDrawerLeft() {
   const [algotab, setalgotab] = React.useState();
 
 
-  const [currDataset, setCurrDataset] = useState("");
-  const [currsubgraphAlgo, setCurrsubgraphAlgo] = useState("");
-  const [currPatternAlgo, setPatternAlgo] = useState("");
+  const [currDataset, setCurrDataset] = useState("yeast");
+  const [currDatasetId, setCurrDatasetId] = useState("6687b61354d22825ba44ed20")
+  const [currsubgraphAlgo, setCurrsubgraphAlgo] = useState("gSpan");
+  const [currPatternAlgo, setPatternAlgo] = useState("GTCP");
   const [loading, setLoading] = useState(false);
 
 
@@ -199,20 +201,11 @@ export default function PersistentDrawerLeft() {
       )
     );
   };
-  const datasetclick = (name) => {
+
+  const datasetclick = (name, id) => {
     setCurrDataset(name);
-    let flag = true;
-    for (var i = 0; i < initialNodes.length; i++) {
-      if (initialNodes[i]["type"] == "Dataset") {
-        changeNodeType('1', 'subgraph_algo');
-      }
-    }
+    setCurrDatasetId(id)
   }
-
-
-
-
-
 
   const [open, setOpen] = React.useState(true);
 
@@ -235,9 +228,10 @@ export default function PersistentDrawerLeft() {
         }
 
       }).then(response => {
-        setDatasets(response.data["data"])
+        setDatasets(response.data["datasets"])
         setSubgraphAlgos(response.data["subgraph_algos"]);
         setPatternAlgos(response.data["pattern_algos"]);
+        setProps({ "datasets": response.data["datasets"], "subgraph_algos": response.data["subgraph_algos"], "pattern_algos": response.data["pattern_algos"] })
         setdummy(!(dummy));
       })
     }
@@ -247,18 +241,9 @@ export default function PersistentDrawerLeft() {
 
   React.useEffect(() => {
     const row = [];
-    if (datasets) {
-      for (var i = 0; i < datasets.length; i++) {
-        row.push(
-          <a onClick={() => { datasetclick(datasets[i]) }} class="list-group-item list-group-item-action" style={{ textAlign: "left", cursor: "pointer" }}>{datasets[i]}  <DataObjectIcon style={{ color: "#2b5377" }} /></a>
-        )
-        row.push(
-          <a onClick={() => { datasetclick(datasets[i]) }} class="list-group-item list-group-item-action" style={{ textAlign: "left", cursor: "pointer" }}>{datasets[i]}  <DataObjectIcon style={{ color: "#2b5377" }} /></a>
-        )
-        row.push(
-          <a onClick={() => { datasetclick(datasets[i]) }} class="list-group-item list-group-item-action" style={{ textAlign: "left", cursor: "pointer" }}>{datasets[i]}  <DataObjectIcon style={{ color: "#2b5377" }} /></a>
-        )
-      }
+
+    if (props) {
+      row.push(<AccordionUsage datasets={props["datasets"]} subgraph_algos={props["subgraph_algos"]} pattern_algos={props["pattern_algos"]} fun={datasetclick} />)
     }
     const fin =
       (<div className='Datasets'>
@@ -268,28 +253,7 @@ export default function PersistentDrawerLeft() {
       </div>)
     setdatatab(fin);
 
-  }, [datasets])
-
-
-  React.useEffect(() => {
-    const row = [];
-    if (subgraph_algos) {
-      for (var i = 0; i < subgraph_algos.length; i++) {
-        row.push(<div onClick={() => { setCurrsubgraphAlgo(subgraph_algos[i]) }} style={{ cursor: "pointer" }}>
-          <a onClick={() => { setCurrsubgraphAlgo(subgraph_algos[i]) }} class="list-group-item list-group-item-action" style={{ textAlign: "left", cursor: "pointer" }}>{subgraph_algos[i]}  <DataObjectIcon style={{ color: "#2b5377" }} /></a>
-        </div>
-        )
-      }
-    }
-    const fin =
-      (<div className='Algos'>
-        <div class="list-group" style={{ width: "100%" }}>
-          {row}
-        </div>
-      </div>)
-    setalgotab(fin);
-
-  }, [subgraph_algos])
+  }, [props])
 
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -307,7 +271,6 @@ export default function PersistentDrawerLeft() {
       style: { strokeWidth: 5 },
     };
     setEdges((els) => addEdge(newEdge, els));
-    console.log(newEdge, "???????????????????????");
     if (newEdge["source"] == 1 && newEdge["target"] == 2) {
       setcon1(true);
     }
@@ -318,14 +281,13 @@ export default function PersistentDrawerLeft() {
 
   const mineSubgraphs = async () => {
     setLoading(true);
-    await axios.post(`http://localhost:5000/mineSubgraphs`, { dataset: "Yeast", subgraph_algo: "gSpan", minsup: minsup }, {
+    await axios.post(`http://localhost:5000/mineSubgraphs`, { dataset: currDatasetId, subgraph_algo: "gSpan", minsup: minsup }, {
       headers: {
 
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
         'Content-Type': "application/json",
       }
-
     }).then(response => {
       const row = []
       for (var i = 0; i < response.data["file_content"].length; i++) {
@@ -343,8 +305,6 @@ export default function PersistentDrawerLeft() {
 
       )
       setLoading(false);
-
-      // console.log(response.data,"`http://localhost:5000/*****************");
     })
 
   }
@@ -367,7 +327,8 @@ export default function PersistentDrawerLeft() {
   };
 
   const minePattern = async () => {
-    await axios.post(`http://localhost:5000/mineGTCP`, { dataset: "Yeast", subgraph_algo: "gSpan", minsup: minsup }, {
+    setLoading(true)
+    await axios.post(`http://localhost:5000/mineGTCP`, { dataset: currDatasetId, subgraph_algo: "gSpan", minGTC: minGTC, minGTPC: minGTPC, maxOR: maxOR }, {
       headers: {
 
         'Access-Control-Allow-Origin': '*',
@@ -385,11 +346,11 @@ export default function PersistentDrawerLeft() {
           <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} onClick={() => { handleDownload(response.data) }}>Download Results</button>
         </div>
       )
+      setLoading(false);
 
     })
 
   }
-
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
@@ -430,27 +391,22 @@ export default function PersistentDrawerLeft() {
         <Divider />
         <List>
           <div className='Datasets-section' style={{ backgroundColor: "rgb(249 250 255)", borderRadius: "0px", padding: "10px" }}>
-            <h4 style={{ textAlign: "left", color: "gray" }}>Datasets</h4>
-            <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "flex-start", marginBottom: "20px", width: "200px", backgroundColor: "#2b5377" }}>Add new <FileUploadIcon sx={{ marginLeft: "5px" }} /></button>
+            <FileUpload />
             {datatab}
-
           </div>
-          {/* <hr/> */}
           <div className='Algorithm-section' style={{ backgroundColor: "rgb(249 250 255)", borderRadius: "10px", padding: "10px", marginTop: "50px" }}>
-            <h4 style={{ textAlign: "left", color: "gray" }}>Subgraph mining algorithms</h4>
             {algotab}
           </div>
 
         </List>
         <Divider />
         <List>
-
         </List>
       </Drawer>
       <Main open={open} sx={{ padding: "0px" }}>
         <DrawerHeader />
         <div className="main" style={{ display: "flex", flexDirection: "row", padding: "0px" }}>
-          <div className='maincanvas' style={{ width: "100%", height: "85vh" }}>
+          <div className='maincanvas' style={{ width: "100%", height: "90vh" }}>
             <ReactFlow
               nodes={nodes}
               edges={edges}
@@ -459,7 +415,8 @@ export default function PersistentDrawerLeft() {
               onConnect={onConnect}
               nodeTypes={nodetypes}
             >
-              <Background variant="lines" size={6} gap={26} />
+              <TopGrid dataset={currDataset} subgraph_algo={currsubgraphAlgo} pattern_algo={currPatternAlgo} />
+              <Background variant="lines" color='lightgrey' size={20} gap={26} />
               <Controls />
             </ReactFlow>
           </div>
@@ -477,7 +434,10 @@ export default function PersistentDrawerLeft() {
 
                   <label for="customRange1" className="form-label">max OR : {maxOR}</label>
                   <input type="range" className="form-range" id="customRange1" onChange={(e) => { setmaxOR(e.target.value / 100) }} />
-                  <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} onClick={() => minePattern()}>Mine patterns</button>
+                  {/* <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} onClick={() => minePattern()}>Mine patterns</button> */}
+                  <Box display="flex" justifyContent="center" alignItems="center" height="5vh" marginTop="20px">
+                    {loading ? <CircularProgress /> : <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} onClick={() => minePattern()}>Mine patterns</button>}
+                  </Box>
                   {result}
                 </div>
               </div>
@@ -488,7 +448,7 @@ export default function PersistentDrawerLeft() {
                 <label for="customRange1" className="form-label">min Sup : {minsup}</label>
                 <input type="range" className="form-range" id="customRange1" onChange={(e) => { setminsup(e.target.value / 100) }} />
                 <Box display="flex" justifyContent="center" alignItems="center" height="5vh" marginTop="20px">
-                  {loading? <CircularProgress  />: <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} onClick={() => { mineSubgraphs() }}>Mine Sub Graphs</button>}
+                  {loading ? <CircularProgress /> : <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} onClick={() => { mineSubgraphs() }}>Mine Sub Graphs</button>}
                 </Box>
               </div>
             }
