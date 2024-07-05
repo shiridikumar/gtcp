@@ -44,6 +44,7 @@ import { width } from '@mui/system';
 import AccordionUsage from './DropDown';
 import FileUpload from './FileUpload';
 import TopGrid from './TopGrid';
+import CarouselComponent from './CarouselComponent';
 
 
 const drawerWidth = 400;
@@ -188,6 +189,8 @@ export default function PersistentDrawerLeft() {
   const [currsubgraphAlgo, setCurrsubgraphAlgo] = useState("gSpan");
   const [currPatternAlgo, setPatternAlgo] = useState("GTCP");
   const [loading, setLoading] = useState(false);
+  const [imageData, setImageData] = useState('');
+
 
 
   const [reactflow, setreactflow] = useState();
@@ -247,7 +250,7 @@ export default function PersistentDrawerLeft() {
     }
     const fin =
       (<div className='Datasets'>
-        <div class="list-group" style={{ width: "100%" }}>
+        <div className="list-group" style={{ width: "100%" }}>
           {row}
         </div>
       </div>)
@@ -309,6 +312,26 @@ export default function PersistentDrawerLeft() {
 
   }
 
+  const showtop10 = (top10) => {
+    // handleDrawerClose();
+    return (
+      <>
+        <button className="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop">Toggle top offcanvas</button>
+
+        <div className="offcanvas offcanvas-top" tabindex="-1" id="offcanvasTop" aria-labelledby="offcanvasTopLabel" style={{width:"100vw",height:"90vh"}}>
+          <div className="offcanvas-header">
+            <h5 id="offcanvasTopLabel">Offcanvas top</h5>
+            <button type="button" className="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+          </div>
+          <div className="offcanvas-body">
+            <CarouselComponent images={top10}/>
+            {/* <img src={`data:image/png;base64,${top10[0][0]}`} alt="Plot" /> */}
+          </div>
+        </div>
+      </>
+    )
+  }
+
   const handleDownload = (obj) => {
     const fileName = "data.json";
     const jsonStr = JSON.stringify(obj, null, 2);
@@ -337,13 +360,17 @@ export default function PersistentDrawerLeft() {
       }
 
     }).then(response => {
+      console.log(response.data, "************************")
+      setImageData(response.data.image);
       setResults(
         <div>
           <form action="http://localhost:5000/getPatterns" target="_blank" method="post">
-            <input type="hidden" id="arrayInput" name="arrayData" value={JSON.stringify(response.data)} />
+            <input type="hidden" id="arrayInput" name="arrayData" value={JSON.stringify(response.data["js"])} />
             <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} type='submit'>View Results</button>
           </form>
-          <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} onClick={() => { handleDownload(response.data) }}>Download Results</button>
+          {showtop10(response.data["images"])}
+          {/* <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} onClick={() => console.log(response.data["images"][0])}>View Top 20 patterns</button> */}
+          <button className='btn btn-secondary' style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px", backgroundColor: "#2b5377" }} onClick={() => { handleDownload(response.data["js"]) }}>Download Results</button>
         </div>
       )
       setLoading(false);
@@ -453,6 +480,13 @@ export default function PersistentDrawerLeft() {
               </div>
             }
             {cont}
+            <div>
+              {imageData ? (
+                <img src={`data:image/png;base64,${imageData}`} alt="Plot" />
+              ) : (
+                <p>Loading plot...</p>
+              )}
+            </div>
           </div>
         </div>
 
