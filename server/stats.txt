@@ -1,8 +1,8 @@
-average_nodes: 24.256375418060202
-average_edges: 25.88670568561873
+average_nodes: 34.07389402041809
+average_edges: 36.943121050072925
 max_nodes: 111
-min_nodes: 3
+min_nodes: 5
 max_edges: 119
-min_edges: 1
-total_unique_vertex_labels: 56
+min_edges: 2
+total_unique_vertex_labels: 30
 total_unique_edge_labels: 3

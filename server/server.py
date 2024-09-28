@@ -10,7 +10,7 @@ from GTCP import GTCP
 from PAMI.extras.stats import graphDatabase as gdb
 from graph import graphDatabase
 
-from PAMI.subgraphMining.basic import gspan as gsp
+import gspan as gsp
 import os
 import json
 from io import BytesIO

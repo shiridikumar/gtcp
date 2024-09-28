@@ -3,7 +3,15 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import base64
 from io import BytesIO
-
+from graph_smiles import visualize_molecule
+from graph_smiles import smiles_to_graph_transaction
+from graph_smiles import graph_transaction_to_smiles
+f=open("mapping.txt","r")
+dic={}
+for i in f.readlines():
+    i=i.replace("\n","")
+    a,b=i.split()
+    dic[int(b)]=a
 class graphDatabase:
 
     def __init__(self, iFile) ->  None:
@@ -102,6 +110,10 @@ class graphDatabase:
 
         plt.tight_layout()
         plt.savefig(path)
+
+
+
+
     
     def getcomb(self,reqids):
         with open(self.iFile, 'r') as file:
@@ -121,19 +133,26 @@ class graphDatabase:
                     if(prev in reqids):
                         graphs.update({prev:(current_graph, vertex_labels, edge_labels)})
                 prev=int(line.split()[-1])
-                current_graph = nx.Graph()
+                # current_graph = nx.Graph()
+                current_graph=""
                 vertex_labels = {}
                 edge_labels = {}
             elif line.startswith('v'):
                 _, vertex_id, label = line.split()
-                current_graph.add_node(int(vertex_id))
+                # current_graph.add_node(int(vertex_id))
+                # if(prev in reqids):
+                #     print(prev,line)
+                current_graph+=f"v {vertex_id} {dic[int(label)]}"
+                current_graph+="\n"
                 vertex_labels[int(vertex_id)] = label
             elif line.startswith('e'):
                 _, source, target, label = line.split()
-                current_graph.add_edge(int(source), int(target))
+                # current_graph.add_edge(int(source), int(target))
+                current_graph+=line
+                current_graph+="\n"
                 edge_labels[(int(source), int(target))] = label
 
-        if current_graph is not None:
+        if current_graph is not None and current_graph!="":
             if(prev in reqids and len(graphs)<100):
                 graphs.update({prev:(current_graph, vertex_labels, edge_labels)})
         
@@ -144,14 +163,24 @@ class graphDatabase:
     def plot_given(self,graphs,reqids):
         n_rows = int(len(graphs) ** 0.5)
         n_cols = (len(graphs) // n_rows) + (len(graphs) % n_rows > 0)
-        plt.figure(figsize=(n_cols * 4, n_rows * 4))
+        plt.figure(figsize=(n_cols * 20, n_rows * 20))
         for i, (graph, vertex_labels, edge_labels) in enumerate(graphs):
+            # ax = plt.subplot(n_rows, n_cols, i + 1)
+            # smiles=graph_transaction_to_smiles(graph)
+            # pos = nx.spring_layout(graph)
+            # nx.draw(graph, pos, labels=vertex_labels, ax=ax, with_labels=True, node_color='lightblue',
+            #         node_size=500, font_size=10, font_weight='bold')
+            # nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, ax=ax, font_color='black')
+            # ax.set_title(f"Graph id {reqids[i]}")
             ax = plt.subplot(n_rows, n_cols, i + 1)
-            pos = nx.spring_layout(graph)
-            nx.draw(graph, pos, labels=vertex_labels, ax=ax, with_labels=True, node_color='lightblue',
-                    node_size=500, font_size=10, font_weight='bold')
-            nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, ax=ax, font_color='black')
-            ax.set_title(f"Graph id {reqids[i]}")
+            smiles = graph_transaction_to_smiles(graph)  # Convert graph to SMILES string
+            print(smiles,"*******")
+            img = visualize_molecule(smiles)  # Visualize the molecule
+            
+            if img:
+                ax.imshow(img)
+                ax.axis('off')  # Hide axis for clean visualization
+                ax.set_title(f"Graph id {reqids[i]}")
 
         plt.tight_layout()
         buf = BytesIO()
@@ -159,6 +188,8 @@ class graphDatabase:
         buf.seek(0)
         plt.close()
 
+        # smiles = "CC(=O)OC1=CC=CC=C1C(=O)O" 
+        # img_buffer = visualize_molecule(smiles)
         image_base64 = base64.b64encode(buf.read()).decode('utf-8')
         return image_base64
 
